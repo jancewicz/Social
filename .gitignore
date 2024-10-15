@@ -1,0 +1,7 @@
+go.sum
+go.mod
+
+.air.toml
+.env
+
+/bin
