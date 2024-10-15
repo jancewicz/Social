@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/jancewicz/social/internal/env"
+	"github.com/jancewicz/social/internal/store"
 	"github.com/joho/godotenv"
 )
 
@@ -18,8 +19,11 @@ func main() {
 		addr: env.GetString(os.Getenv("SRV_ADDR"), ":8080"),
 	}
 
+	store := store.NewStorage(nil)
+
 	app := &application{
 		config: cfg,
+		store:  store,
 	}
 
 	mux := app.mount()
