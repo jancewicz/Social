@@ -5,3 +5,4 @@ go.mod
 .env
 
 /bin
+/tmp
