@@ -19,12 +19,13 @@ func main() {
 	cfg := config{
 		addr: env.GetString(os.Getenv("SRV_ADDR"), ":8080"),
 		db: dbConfig{
-			addr:         env.GetString(os.Getenv("DB_ADDR"), "postgres://user:adminpassword@localhost/social?sslmode=disable"),
+			addr:         env.GetString(os.Getenv("DB_ADDR"), "postgres://janc:dbpass@localhost:5432/socialnetwork?sslmode=disable"),
 			maxOpenConns: env.GetInt(os.Getenv("DB_MAX_OPEN_CONNS"), 30),
 			maxIdleConns: env.GetInt(os.Getenv("DB_MAX_IDLE_CONNS"), 30),
-			maxIdleTime:  env.GetString(os.Getenv("DB_MAX_IDLE_TIME"), "15min"),
+			maxIdleTime:  env.GetString(os.Getenv("DB_MAX_IDLE_TIME"), "15m"),
 		},
 	}
+	log.Println("DB Address:", cfg.db.addr)
 
 	db, err := db.New(
 		cfg.db.addr,
@@ -35,6 +36,9 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	defer db.Close()
+	log.Println("database connection established")
 
 	store := store.NewStorage(db)
 
