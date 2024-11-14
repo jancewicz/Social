@@ -19,7 +19,7 @@ func main() {
 	cfg := config{
 		addr: env.GetString(os.Getenv("SRV_ADDR"), ":8080"),
 		db: dbConfig{
-			addr:         env.GetString(os.Getenv("DB_ADDR"), "postgres://janc:dbpass@localhost:5432/socialnetwork?sslmode=disable"),
+			addr:         os.Getenv("DB_ADDR"),
 			maxOpenConns: env.GetInt(os.Getenv("DB_MAX_OPEN_CONNS"), 30),
 			maxIdleConns: env.GetInt(os.Getenv("DB_MAX_IDLE_CONNS"), 30),
 			maxIdleTime:  env.GetString(os.Getenv("DB_MAX_IDLE_TIME"), "15m"),
