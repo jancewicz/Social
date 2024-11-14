@@ -24,6 +24,7 @@ func main() {
 			maxIdleConns: env.GetInt(os.Getenv("DB_MAX_IDLE_CONNS"), 30),
 			maxIdleTime:  env.GetString(os.Getenv("DB_MAX_IDLE_TIME"), "15m"),
 		},
+		env: os.Getenv("ENV"),
 	}
 	log.Println("DB Address:", cfg.db.addr)
 
