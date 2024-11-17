@@ -3,8 +3,13 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/lib/pq"
+)
+
+var (
+	ErrNotFound = errors.New("resource not found")
 )
 
 type Post struct {
@@ -43,4 +48,31 @@ func (s *PostStore) Create(ctx context.Context, posts *Post) error {
 		return err
 	}
 	return nil
+}
+
+func (s *PostStore) GetByID(ctx context.Context, id int64) (*Post, error) {
+	query := `
+		SELECT * FROM posts WHERE id = $1
+	`
+
+	var post Post
+	err := s.db.QueryRowContext(ctx, query, id).Scan(
+		&post.ID,
+		&post.Title,
+		&post.UserID,
+		&post.Content,
+		&post.CreatedAt,
+		pq.Array(&post.Tags),
+		&post.UpdatedAt,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &post, nil
 }
