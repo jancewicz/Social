@@ -10,8 +10,8 @@ import (
 )
 
 type CreatePostPayload struct {
-	Title   string   `json:"title" validate:"requirder,max=100"`
-	Content string   `json:"content" validate:"requirder,max=1000"`
+	Title   string   `json:"title" validate:"required,max=100"`
+	Content string   `json:"content" validate:"required,max=1000"`
 	Tags    []string `json:"tags"`
 }
 
@@ -80,5 +80,26 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := writeJSON(w, http.StatusOK, post); err != nil {
 		app.internalSeverError(w, r, err)
+	}
+}
+
+func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "postId")
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		app.internalSeverError(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+	err = app.store.Posts.Delete(ctx, id)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundError(w, r, err)
+		default:
+			app.internalSeverError(w, r, err)
+		}
+		return
 	}
 }
