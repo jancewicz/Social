@@ -8,10 +8,6 @@ import (
 	"github.com/lib/pq"
 )
 
-var (
-	ErrNotFound = errors.New("resource not found")
-)
-
 type Post struct {
 	ID        int64     `json:"id"`
 	Content   string    `json:"content"`
@@ -33,6 +29,9 @@ func (s *PostStore) Create(ctx context.Context, posts *Post) error {
 		INSERT INTO posts (content, title, user_id, tags)
 		VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at
 	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 
 	err := s.db.QueryRowContext(
 		ctx,
@@ -58,6 +57,8 @@ func (s *PostStore) GetByID(ctx context.Context, id int64) (*Post, error) {
 		FROM posts 
 		WHERE id = $1
 	`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 
 	var post Post
 	// Order of columns in Scan is crucial, otherwise error occurs
@@ -87,6 +88,9 @@ func (s *PostStore) Delete(ctx context.Context, id int64) error {
 	query := `
 		DELETE FROM posts WHERE id = $1
 	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 
 	result, err := s.db.ExecContext(ctx, query, id)
 	if err != nil {
