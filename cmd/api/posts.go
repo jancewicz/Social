@@ -118,8 +118,13 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := app.store.Posts.Update(r.Context(), post); err != nil {
-		app.internalSeverError(w, r, err)
-		return
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundError(w, r, err)
+		default:
+			app.internalSeverError(w, r, err)
+			return
+		}
 	}
 
 	if err := app.jsonResponse(w, http.StatusOK, post); err != nil {
