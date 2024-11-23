@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -17,6 +18,8 @@ const commentCtx commentKey = "comment"
 func (app *application) getCommentHandler(w http.ResponseWriter, r *http.Request) {
 	comment := getCommentFromCtx(r)
 
+	// Comment is nil
+	fmt.Println(comment)
 	if err := app.jsonResponse(w, http.StatusOK, comment); err != nil {
 		app.internalSeverError(w, r, err)
 	}
@@ -114,7 +117,7 @@ func (app *application) commentContextMiddleware(next http.Handler) http.Handler
 			return
 		}
 
-		ctx = context.WithValue(ctx, postCtx, comment)
+		ctx = context.WithValue(ctx, commentCtx, comment)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
