@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -18,14 +17,14 @@ const commentCtx commentKey = "comment"
 func (app *application) getCommentHandler(w http.ResponseWriter, r *http.Request) {
 	comment := getCommentFromCtx(r)
 
-	// Comment is nil
-	fmt.Println(comment)
 	if err := app.jsonResponse(w, http.StatusOK, comment); err != nil {
 		app.internalSeverError(w, r, err)
 	}
 }
 
 type CreateCommentPayload struct {
+	PostID  int64  `json:"post_id" validate:"required"`
+	UserID  int64  `json:"user_id" validate:"required"`
 	Content string `json:"content" validate:"required,max=500"`
 }
 
@@ -44,6 +43,8 @@ func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Requ
 
 	comment := &store.Comment{
 		Content: payload.Content,
+		UserID:  payload.UserID,
+		PostID:  payload.PostID,
 	}
 	ctx := r.Context()
 
@@ -97,8 +98,8 @@ func (app *application) updateCommentHandler(w http.ResponseWriter, r *http.Requ
 
 func (app *application) commentContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		idParam := chi.URLParam(r, "comId")
-		id, err := strconv.ParseInt(idParam, 10, 64)
+		comIdParam := chi.URLParam(r, "comId")
+		id, err := strconv.ParseInt(comIdParam, 10, 64)
 		if err != nil {
 			app.internalSeverError(w, r, err)
 			return
