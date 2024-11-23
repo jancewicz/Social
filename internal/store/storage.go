@@ -23,8 +23,13 @@ type Storage struct {
 		Create(context.Context, *User) error
 	}
 	Comments interface {
+		// get every comment from post with given post id
 		GetByPostID(context.Context, int64) ([]Comment, error)
+		// get specific comment by given comment id
+		GetByComID(context.Context, int64) (*Comment, error)
 		Create(context.Context, *Comment) error
+		Delete(context.Context, int64) error
+		Update(context.Context, *Comment) error
 	}
 }
 

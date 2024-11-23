@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 )
 
 type Comment struct {
@@ -12,6 +13,7 @@ type Comment struct {
 	Content   string `json:"content"`
 	CreatedAt string `json:"created_at"`
 	User      User   `json:"user"`
+	Version   int    `json:"version"`
 }
 
 type CommentStore struct {
@@ -50,6 +52,37 @@ func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment
 	return comments, nil
 }
 
+func (s *CommentStore) GetByComID(ctx context.Context, comID int64) (*Comment, error) {
+	query := `
+		SELECT id, post_id, user_id, content, created_at, version
+		FROM comments
+		WHERE id = $1
+	`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	var comment Comment
+	err := s.db.QueryRowContext(ctx, query, comID).Scan(
+		&comment.ID,
+		&comment.PostID,
+		&comment.UserID,
+		&comment.Content,
+		&comment.CreatedAt,
+		&comment.Version,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &comment, nil
+
+}
+
 func (s *CommentStore) Create(ctx context.Context, comment *Comment) error {
 	query := `
 		INSERT INTO comments (post_id, user_id, content)
@@ -71,6 +104,57 @@ func (s *CommentStore) Create(ctx context.Context, comment *Comment) error {
 	)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *CommentStore) Delete(ctx context.Context, id int64) error {
+	query := `
+		DELETE FROM comments where id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	result, err := s.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
+func (s *CommentStore) Update(ctx context.Context, comment *Comment) error {
+	query := `
+		UPDATE comments
+		SET content = $1, version = version + 1 
+		WHERE id = $2 AND version = $3
+		RETURNING version
+	`
+
+	err := s.db.QueryRowContext(
+		ctx,
+		query,
+		comment.Content,
+		comment.ID,
+	).Scan(&comment.Version)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrNotFound
+		default:
+			return err
+		}
 	}
 
 	return nil

@@ -54,6 +54,17 @@ func (app *application) mount() http.Handler {
 				r.Patch("/", app.updatePostHandler)
 			})
 		})
+
+		r.Route("/comments", func(r chi.Router) {
+			r.Post("/", app.createCommentHandler)
+
+			r.Route("/{comId}", func(r chi.Router) {
+				r.Use(app.commentContextMiddleware)
+
+				r.Get("/", app.getCommentHandler)
+				r.Patch("/", app.updateCommentHandler)
+			})
+		})
 	})
 
 	return r
