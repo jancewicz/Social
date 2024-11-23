@@ -52,17 +52,17 @@ func (app *application) mount() http.Handler {
 				r.Get("/", app.getPostHandler)
 				r.Delete("/", app.deletePostHandler)
 				r.Patch("/", app.updatePostHandler)
-			})
-		})
 
-		r.Route("/comments", func(r chi.Router) {
-			r.Post("/", app.createCommentHandler)
+				r.Route("/comments", func(r chi.Router) {
+					r.Post("/", app.createCommentHandler)
+					r.Get("/", app.getCommentsHandler)
 
-			r.Route("/{comId}", func(r chi.Router) {
-				r.Use(app.commentContextMiddleware)
+					r.Route("/{comId}", func(r chi.Router) {
+						r.Use(app.commentContextMiddleware)
 
-				r.Get("/", app.getCommentHandler)
-				r.Patch("/", app.updateCommentHandler)
+						r.Patch("/", app.updateCommentHandler)
+					})
+				})
 			})
 		})
 	})

@@ -14,10 +14,16 @@ type commentKey string
 
 const commentCtx commentKey = "comment"
 
-func (app *application) getCommentHandler(w http.ResponseWriter, r *http.Request) {
-	comment := getCommentFromCtx(r)
+func (app *application) getCommentsHandler(w http.ResponseWriter, r *http.Request) {
+	post := getPostFromCtx(r)
 
-	if err := app.jsonResponse(w, http.StatusOK, comment); err != nil {
+	comments, err := app.store.Comments.GetByPostID(r.Context(), post.ID)
+	if err != nil {
+		app.internalSeverError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, comments); err != nil {
 		app.internalSeverError(w, r, err)
 	}
 }
