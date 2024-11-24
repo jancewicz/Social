@@ -21,7 +21,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case store.ErrNotFound:
-			app.badRequestError(w, r, err)
+			app.notFoundError(w, r, err)
 			return
 		default:
 			app.internalSeverError(w, r, err)
