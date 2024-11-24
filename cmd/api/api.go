@@ -61,6 +61,7 @@ func (app *application) mount() http.Handler {
 						r.Use(app.commentContextMiddleware)
 
 						r.Patch("/", app.updateCommentHandler)
+						r.Delete("/", app.deleteCommentHandler)
 					})
 				})
 			})

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -66,12 +67,13 @@ func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Requ
 }
 
 type UpdateCommenttPayload struct {
-	Content *string `json:"content" validate:"omitempty, max=500"`
+	Content *string `json:"content" validate:"omitempty,max=500"`
 }
 
 func (app *application) updateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	comment := getCommentFromCtx(r)
 
+	fmt.Println(comment)
 	var payload UpdateCommenttPayload
 	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequestError(w, r, err)
@@ -100,6 +102,28 @@ func (app *application) updateCommentHandler(w http.ResponseWriter, r *http.Requ
 	if err := app.jsonResponse(w, http.StatusOK, comment); err != nil {
 		app.internalSeverError(w, r, err)
 	}
+}
+
+func (app *application) deleteCommentHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "comId")
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		app.internalSeverError(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	if err := app.store.Comments.Delete(ctx, id); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundError(w, r, err)
+		default:
+			app.internalSeverError(w, r, err)
+		}
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (app *application) commentContextMiddleware(next http.Handler) http.Handler {

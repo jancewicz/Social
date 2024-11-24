@@ -147,6 +147,7 @@ func (s *CommentStore) Update(ctx context.Context, comment *Comment) error {
 		query,
 		comment.Content,
 		comment.ID,
+		comment.Version,
 	).Scan(&comment.Version)
 	if err != nil {
 		switch {
