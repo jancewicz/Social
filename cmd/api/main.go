@@ -10,6 +10,25 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const version = "0.0.2"
+
+//	@title			Social API
+//	@description	API for Social web app
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @BasePath					/v1
+//
+// @securitydefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -17,7 +36,8 @@ func main() {
 	}
 
 	cfg := config{
-		addr: env.GetString(os.Getenv("SRV_ADDR"), ":8080"),
+		addr:   env.GetString(os.Getenv("SRV_ADDR"), ":8080"),
+		apiURL: env.GetString(os.Getenv("EXTERNAL_URL"), "localhost:8080"),
 		db: dbConfig{
 			addr:         os.Getenv("DB_ADDR"),
 			maxOpenConns: env.GetInt(os.Getenv("DB_MAX_OPEN_CONNS"), 30),
