@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -73,7 +72,6 @@ type UpdateCommenttPayload struct {
 func (app *application) updateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	comment := getCommentFromCtx(r)
 
-	fmt.Println(comment)
 	var payload UpdateCommenttPayload
 	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequestError(w, r, err)
