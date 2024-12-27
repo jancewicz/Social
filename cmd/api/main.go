@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/jancewicz/social/internal/db"
 	"github.com/jancewicz/social/internal/env"
@@ -45,6 +46,9 @@ func main() {
 			maxIdleTime:  env.GetString(os.Getenv("DB_MAX_IDLE_TIME"), "15m"),
 		},
 		env: os.Getenv("ENV"),
+		mail: mailConfig{
+			exp: time.Hour * 24 * 3, // 3 days to accpet invite
+		},
 	}
 	log.Println("DB Address:", cfg.db.addr)
 
