@@ -1,5 +1,21 @@
 basePath: /v1
 definitions:
+  main.CreatePostPayload:
+    properties:
+      content:
+        maxLength: 1000
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 100
+        type: string
+    required:
+    - content
+    - title
+    type: object
   main.RegisterUserPayload:
     properties:
       email:
@@ -163,11 +179,100 @@ paths:
       summary: Healthcheck
       tags:
       - devops
-  /posts/{id}:
+  /posts:
     post:
       consumes:
       - application/json
-      description: Update post by id
+      description: Creates a post
+      parameters:
+      - description: Post payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreatePostPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Creates a post
+      tags:
+      - posts
+  /posts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a post by given ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Deletes a post
+      tags:
+      - posts
+    get:
+      consumes:
+      - application/json
+      description: Fetches a post by given ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Post'
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Fetches a post
+      tags:
+      - posts
+    put:
+      consumes:
+      - application/json
+      description: Update post by given id
       parameters:
       - description: Post id
         in: path
@@ -256,6 +361,35 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Follows user
+      tags:
+      - users
+  /users/{userID}/unfollow:
+    put:
+      consumes:
+      - application/json
+      description: Unfollow a user by given ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User unfollowed
+          schema:
+            type: string
+        "400":
+          description: User payload missing
+          schema: {}
+        "404":
+          description: User not found
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Unfollow a user
       tags:
       - users
   /users/feed:
