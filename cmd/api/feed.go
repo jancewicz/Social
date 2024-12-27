@@ -15,6 +15,8 @@ import (
 //	@Produce		json
 //	@Param			since	query		string	false	"Since"
 //	@Param			until	query		string	false	"Until"
+//	@Param			limit	query		int		false	"Limit"
+//	@Param			offset	query		int		false	"Offset"
 //	@Param			sort	query		string	false	"Sort"
 //	@Param			tags	query		string	false	"Tags"
 //	@Param			search	query		string	false	"Search"

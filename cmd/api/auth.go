@@ -17,16 +17,16 @@ type RegisterUserPayload struct {
 
 // registerUserHandler godoc
 //
-// @Summary Register user
-// @Description User registration
-// @Tags authentication
-// @Accept json
-// @Produce json
-// @Param payload body RegisterUserPayload true "User's credentials"
-// @Success 201 {object} store.User "User Registrated"
-// @Failure 400 {object} error
-// @Failure 500 {object} error
-// @Router /authentication/user [post]
+//	@Summary		Register user
+//	@Description	User registration
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		RegisterUserPayload	true	"User's credentials"
+//	@Success		201		{object}	store.User			"User Registrated"
+//	@Failure		400		{object}	error
+//	@Failure		500		{object}	error
+//	@Router			/authentication/user [post]
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterUserPayload
 	if err := readJSON(w, r, &payload); err != nil {

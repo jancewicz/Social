@@ -16,6 +16,68 @@
     },
     "basePath": "/v1",
     "paths": {
+        "/authentication/user": {
+            "post": {
+                "description": "User registration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Register user",
+                "parameters": [
+                    {
+                        "description": "User's credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.RegisterUserPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User Registrated",
+                        "schema": {
+                            "$ref": "#/definitions/store.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "description": "Healthcheck",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devops"
+                ],
+                "summary": "Healthcheck",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/posts/{id}": {
             "post": {
                 "security": [
@@ -69,6 +131,89 @@
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/users/feed": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Fetches the user feed",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "feed"
+                ],
+                "summary": "Fetches the user feed",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Since",
+                        "name": "since",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Until",
+                        "name": "until",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tags",
+                        "name": "tags",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.PostWithMetadata"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {}
                     },
                     "500": {
@@ -164,6 +309,29 @@
         }
     },
     "definitions": {
+        "main.RegisterUserPayload": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 3
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
         "main.UpdatePostPayload": {
             "type": "object",
             "properties": {
@@ -206,6 +374,50 @@
         "store.Post": {
             "type": "object",
             "properties": {
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/store.Comment"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/store.User"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "store.PostWithMetadata": {
+            "type": "object",
+            "properties": {
+                "comment_count": {
+                    "type": "integer"
+                },
                 "comments": {
                     "type": "array",
                     "items": {
