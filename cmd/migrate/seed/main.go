@@ -26,5 +26,5 @@ func main() {
 
 	store := store.NewStorage(connection)
 
-	db.Seed(store)
+	db.Seed(store, connection)
 }

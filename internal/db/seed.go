@@ -2,11 +2,12 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
-	"math/rand"
 
 	"github.com/jancewicz/social/internal/store"
+	"golang.org/x/exp/rand"
 )
 
 var usernames = []string{
@@ -74,7 +75,7 @@ var tags = []string{
 	"frameworks", "microservices", "databases", "websockets", "deployment",
 }
 
-var commentsArr = []string{
+var comments = []string{
 	"Great post! Learned a lot about Go concurrency.",
 	"I've been struggling with Go channels, this really helped.",
 	"Fantastic explanation of Go interfaces, very clear!",
@@ -87,22 +88,26 @@ var commentsArr = []string{
 	"Really enjoyed the section on building REST APIs with Go, looking forward to more posts!",
 }
 
-func Seed(store store.Storage) {
+func Seed(store store.Storage, db *sql.DB) {
 	ctx := context.Background()
 
 	users := generateUsers(100)
+	tx, _ := db.BeginTx(ctx, nil)
 
 	for _, user := range users {
-		if err := store.Users.Create(ctx, user); err != nil {
-			log.Println("Error on creating user: ", err)
+		if err := store.Users.Create(ctx, tx, user); err != nil {
+			_ = tx.Rollback()
+			log.Println("Error creating user:", err)
 			return
 		}
 	}
 
+	tx.Commit()
+
 	posts := generatePosts(200, users)
 	for _, post := range posts {
 		if err := store.Posts.Create(ctx, post); err != nil {
-			log.Println("Error on creating post: ", err)
+			log.Println("Error creating post:", err)
 			return
 		}
 	}
@@ -110,7 +115,7 @@ func Seed(store store.Storage) {
 	comments := generateComments(500, users, posts)
 	for _, comment := range comments {
 		if err := store.Comments.Create(ctx, comment); err != nil {
-			log.Println("Error on creating comment: ", err)
+			log.Println("Error creating comment:", err)
 			return
 		}
 	}
@@ -125,9 +130,9 @@ func generateUsers(num int) []*store.User {
 		users[i] = &store.User{
 			Username: usernames[i%len(usernames)] + fmt.Sprintf("%d", i),
 			Email:    usernames[i%len(usernames)] + fmt.Sprintf("%d", i) + "@example.com",
-			Password: "123456",
 		}
 	}
+
 	return users
 }
 
@@ -151,15 +156,13 @@ func generatePosts(num int, users []*store.User) []*store.Post {
 }
 
 func generateComments(num int, users []*store.User, posts []*store.Post) []*store.Comment {
-	comments := make([]*store.Comment, num)
-
+	cms := make([]*store.Comment, num)
 	for i := 0; i < num; i++ {
-		comments[i] = &store.Comment{
+		cms[i] = &store.Comment{
 			PostID:  posts[rand.Intn(len(posts))].ID,
 			UserID:  users[rand.Intn(len(users))].ID,
-			Content: commentsArr[rand.Intn(len(commentsArr))],
+			Content: comments[rand.Intn(len(comments))],
 		}
 	}
-
-	return comments
+	return cms
 }
