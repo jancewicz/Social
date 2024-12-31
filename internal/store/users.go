@@ -2,7 +2,9 @@ package store
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"time"
 
@@ -20,6 +22,7 @@ type User struct {
 	Email     string   `json:"email"`
 	Password  password `json:"-"`
 	CreatedAt string   `json:"created_at"`
+	Active    bool     `json:"active"`
 }
 
 type password struct {
@@ -111,6 +114,62 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	return nil
 }
 
+func (s *UserStore) Activate(ctx context.Context, token string) error {
+	return withTransaction(s.db, ctx, func(tx *sql.Tx) error {
+		// find user with corresponding token
+		user, err := s.getUserFromInvitation(ctx, tx, token)
+		if err != nil {
+			return err
+		}
+		// update user column, activate user
+		user.Active = true
+		if err := s.update(ctx, tx, user); err != nil {
+			return err
+		}
+		// clear user invitations table
+		if err := s.deleteUsersInvitation(ctx, tx, user.ID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *UserStore) getUserFromInvitation(ctx context.Context, tx *sql.Tx, token string) (*User, error) {
+	query := `
+		SELECT u.id, u.username, u.email, u.created_at, u.active
+		FROM users u
+		JOIN users_invitations ui ON u.id = ui.user_id
+		WHERE ui.token = $1 AND ui.expiry > $2
+	`
+
+	hash := sha256.Sum256([]byte(token))
+	hashToken := hex.EncodeToString(hash[:])
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	user := &User{}
+
+	err := tx.QueryRowContext(ctx, query, hashToken, time.Now()).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.CreatedAt,
+		&user.Active,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return user, nil
+}
+
 func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error {
 	// transaction wrapper
 	return withTransaction(s.db, ctx, func(tx *sql.Tx) error {
@@ -125,4 +184,36 @@ func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token strin
 
 		return nil
 	})
+}
+
+func (s *UserStore) deleteUsersInvitation(ctx context.Context, tx *sql.Tx, userID int64) error {
+	query := `
+		DELETE FROM users_invitations WHERE user_id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UserStore) update(ctx context.Context, tx *sql.Tx, user *User) error {
+	query := `
+		UPDATE users SET username = $1, email = $2, active = $3 WHERE id = $4
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, user.Username, user.Email, user.Active, user.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

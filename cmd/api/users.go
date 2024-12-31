@@ -48,8 +48,8 @@ type FollowUser struct {
 //	@Produce		json
 //	@Param			id	path		int		true	"User ID"
 //	@Success		204	{object}	string	"User followed"
-//	@Failure		404	{object}	error "User payload missing"
-//	@Failure		404	{object}	error "User not found"
+//	@Failure		404	{object}	error	"User payload missing"
+//	@Failure		404	{object}	error	"User not found"
 //	@Security		ApiKeyAuth
 //	@Router			/users/{id}/follow [put]
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -112,6 +112,37 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	if err := app.jsonResponse(w, http.StatusOK, nil); err != nil {
+		app.internalSeverError(w, r, err)
+	}
+}
+
+// ActivateUser godoc
+//
+//	@Summary		Activate users' account
+//	@Description	Activate users' account by invitation
+//	@Tags			users
+//	@Produce		json
+//	@Param			token	path		string	true	"Invitation token"
+//	@Success		204		{string}	string	"User activated"
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/users/activate/{token} [put]
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+
+	err := app.store.Users.Activate(r.Context(), token)
+	if err != nil {
+		switch err {
+		case store.ErrNotFound:
+			app.notFoundError(w, r, err)
+		default:
+			app.internalSeverError(w, r, err)
+		}
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusNoContent, ""); err != nil {
 		app.internalSeverError(w, r, err)
 	}
 }
