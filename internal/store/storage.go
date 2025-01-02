@@ -26,6 +26,7 @@ type Storage struct {
 		GetUserByID(context.Context, int64) (*User, error)
 		CreateAndInvite(ctx context.Context, user *User, token string, inviteExp time.Duration) error
 		Activate(ctx context.Context, token string) error
+		Delete(ctx context.Context, userID int64) error
 	}
 	Comments interface {
 		// get every comment from post with given post id

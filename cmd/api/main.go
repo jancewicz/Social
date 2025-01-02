@@ -7,6 +7,7 @@ import (
 
 	"github.com/jancewicz/social/internal/db"
 	"github.com/jancewicz/social/internal/env"
+	"github.com/jancewicz/social/internal/mailer"
 	"github.com/jancewicz/social/internal/store"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
@@ -38,8 +39,9 @@ func main() {
 	}
 
 	cfg := config{
-		addr:   env.GetString(os.Getenv("SRV_ADDR"), ":8080"),
-		apiURL: env.GetString(os.Getenv("EXTERNAL_URL"), "localhost:8080"),
+		addr:        env.GetString(os.Getenv("SRV_ADDR"), ":8080"),
+		apiURL:      env.GetString(os.Getenv("EXTERNAL_URL"), "localhost:8080"),
+		frontendURL: env.GetString(os.Getenv("FRONTEND_URL"), "http://localhost/4000"),
 		db: dbConfig{
 			addr:         os.Getenv("DB_ADDR"),
 			maxOpenConns: env.GetInt(os.Getenv("DB_MAX_OPEN_CONNS"), 30),
@@ -48,7 +50,11 @@ func main() {
 		},
 		env: os.Getenv("ENV"),
 		mail: mailConfig{
-			exp: time.Hour * 24 * 3, // 3 days to accpet invite
+			exp:       time.Hour * 24 * 3, // 3 days to accpet invite
+			fromEmail: env.GetString(os.Getenv("FROM_EMAIL"), ""),
+			sendGrid: sendGridConfig{
+				apiKey: env.GetString(os.Getenv("SENDGRID_API_KEY"), ""),
+			},
 		},
 	}
 	log.Println("DB Address:", cfg.db.addr)
@@ -71,10 +77,13 @@ func main() {
 
 	store := store.NewStorage(db)
 
+	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+
 	app := &application{
 		config: cfg,
 		store:  store,
 		logger: logger,
+		mailer: mailer,
 	}
 
 	mux := app.mount()
