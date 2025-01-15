@@ -28,49 +28,53 @@ func NewMailTrapClient(apiKey, fromEmail string) (mailtrapClient, error) {
 }
 
 func (m mailtrapClient) Send(templateFile, username, email string, data any, isSandbox bool) (int, error) {
-	// Template building
-	tmpl, err := template.ParseFS(FS, "templates/"+templateFile)
-	fmt.Println(tmpl)
-	if err != nil {
-		return -1, err
-	}
-
-	subject := new(bytes.Buffer)
-	err = tmpl.ExecuteTemplate(subject, "subject", data)
-	if err != nil {
-		return -1, err
-	}
-
-	body := new(bytes.Buffer)
-	err = tmpl.ExecuteTemplate(body, "body", data)
-	if err != nil {
-		return -1, nil
-	}
-
-	message := gomail.NewMessage()
-	message.SetHeader("From", m.fromEmail)
-	message.SetHeader("To", email)
-	message.SetHeader("Subject", subject.String())
-
-	message.AddAlternative("text/html", body.String())
-
-	dialer := gomail.NewDialer("live.smtp.mailtrap.io", 587, "api", m.apiKey)
-
-	if err := dialer.DialAndSend(message); err != nil {
-		return -1, err
-	}
-
-	var retryErr error
-	for i := 0; i < maxRetires; i++ {
-		if retryErr = dialer.DialAndSend(message); retryErr != nil {
-			log.Printf("Failed to send email to %v, attempt %d of %d", email, i+1, maxRetires)
-			log.Printf("Error: %v", retryErr.Error())
-
-			// backoff
-			time.Sleep(time.Second * time.Duration(i+1))
-			continue
+	if !isSandbox {
+		// Template building
+		tmpl, err := template.ParseFS(FS, "templates/"+templateFile)
+		fmt.Println(tmpl)
+		if err != nil {
+			return -1, err
 		}
+
+		subject := new(bytes.Buffer)
+		err = tmpl.ExecuteTemplate(subject, "subject", data)
+		if err != nil {
+			return -1, err
+		}
+
+		body := new(bytes.Buffer)
+		err = tmpl.ExecuteTemplate(body, "body", data)
+		if err != nil {
+			return -1, nil
+		}
+
+		message := gomail.NewMessage()
+		message.SetHeader("From", m.fromEmail)
+		message.SetHeader("To", email)
+		message.SetHeader("Subject", subject.String())
+
+		message.AddAlternative("text/html", body.String())
+
+		dialer := gomail.NewDialer("live.smtp.mailtrap.io", 587, "api", m.apiKey)
+
+		if err := dialer.DialAndSend(message); err != nil {
+			return -1, err
+		}
+
+		var retryErr error
+		for i := 0; i < maxRetires; i++ {
+			if retryErr = dialer.DialAndSend(message); retryErr != nil {
+				log.Printf("Failed to send email to %v, attempt %d of %d", email, i+1, maxRetires)
+				log.Printf("Error: %v", retryErr.Error())
+
+				// backoff
+				time.Sleep(time.Second * time.Duration(i+1))
+				continue
+			}
+		}
+		return 200, nil
+	} else {
+		return 200, nil
 	}
 
-	return 200, nil
 }
