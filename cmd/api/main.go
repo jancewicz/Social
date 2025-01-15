@@ -51,9 +51,9 @@ func main() {
 		env: os.Getenv("ENV"),
 		mail: mailConfig{
 			exp:       time.Hour * 24 * 3, // 3 days to accpet invite
-			fromEmail: env.GetString(os.Getenv("FROM_EMAIL"), ""),
-			sendGrid: sendGridConfig{
-				apiKey: env.GetString(os.Getenv("SENDGRID_API_KEY"), ""),
+			fromEmail: os.Getenv("FROM_EMAIL"),
+			mailTrap: mailTrapConfig{
+				apiKey: os.Getenv("MAILTRAP_API_KEY"),
 			},
 		},
 	}
@@ -77,13 +77,18 @@ func main() {
 
 	store := store.NewStorage(db)
 
-	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+	// Mailer
+	// mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+	mailtrap, err := mailer.NewMailTrapClient(cfg.mail.mailTrap.apiKey, cfg.mail.fromEmail)
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	app := &application{
 		config: cfg,
 		store:  store,
 		logger: logger,
-		mailer: mailer,
+		mailer: mailtrap,
 	}
 
 	mux := app.mount()

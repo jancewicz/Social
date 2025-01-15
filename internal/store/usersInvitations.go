@@ -8,7 +8,7 @@ import (
 
 func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token string, invitationExp time.Duration, userID int64) error {
 	query := `
-		INSERT INTO users_invitations(token, user_id, expiry) VALUES ($1, $2, $3)
+		INSERT INTO users_invitations (token, user_id, expiry) VALUES ($1, $2, $3)
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)

@@ -13,5 +13,5 @@ var FS embed.FS
 
 type Client interface {
 	// isSandbox checks if environment is dev or prod to avoid sending emails from dev
-	Send(template, username, email string, data any, isSendbox bool) error
+	Send(template, username, email string, data any, isSendbox bool) (int, error)
 }
