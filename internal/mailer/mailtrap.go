@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"log"
+	"time"
 
 	gomail "gopkg.in/gomail.v2"
 )
@@ -56,6 +58,17 @@ func (m mailtrapClient) Send(templateFile, username, email string, data any, isS
 
 	if err := dialer.DialAndSend(message); err != nil {
 		return -1, err
+	}
+
+	for i := 0; i < maxRetires; i++ {
+		if err := dialer.DialAndSend(message); err != nil {
+			log.Printf("Failed to send email to %v, attempt %d of %d", email, i+1, maxRetires)
+			log.Printf("Error: %v", err.Error())
+
+			// backoff
+			time.Sleep(time.Second * time.Duration(i+1))
+			continue
+		}
 	}
 
 	return 200, nil
