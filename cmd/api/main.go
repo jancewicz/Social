@@ -41,7 +41,7 @@ func main() {
 	cfg := config{
 		addr:        env.GetString(os.Getenv("SRV_ADDR"), ":8080"),
 		apiURL:      env.GetString(os.Getenv("EXTERNAL_URL"), "localhost:8080"),
-		frontendURL: env.GetString(os.Getenv("FRONTEND_URL"), "http://localhost/4000"),
+		frontendURL: env.GetString(os.Getenv("FRONTEND_URL"), "http://localhost:5173/"),
 		db: dbConfig{
 			addr:         os.Getenv("DB_ADDR"),
 			maxOpenConns: env.GetInt(os.Getenv("DB_MAX_OPEN_CONNS"), 30),

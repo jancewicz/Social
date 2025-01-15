@@ -60,10 +60,11 @@ func (m mailtrapClient) Send(templateFile, username, email string, data any, isS
 		return -1, err
 	}
 
+	var retryErr error
 	for i := 0; i < maxRetires; i++ {
-		if err := dialer.DialAndSend(message); err != nil {
+		if retryErr = dialer.DialAndSend(message); retryErr != nil {
 			log.Printf("Failed to send email to %v, attempt %d of %d", email, i+1, maxRetires)
-			log.Printf("Error: %v", err.Error())
+			log.Printf("Error: %v", retryErr.Error())
 
 			// backoff
 			time.Sleep(time.Second * time.Duration(i+1))
