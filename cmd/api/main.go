@@ -56,6 +56,12 @@ func main() {
 				apiKey: os.Getenv("MAILTRAP_API_KEY"),
 			},
 		},
+		auth: authConfig{
+			basicConfig{
+				user:     os.Getenv("AUTH_BASIC_USER"),
+				password: os.Getenv("AUTH_BASIC_PASS"),
+			},
+		},
 	}
 	log.Println("DB Address:", cfg.db.addr)
 
