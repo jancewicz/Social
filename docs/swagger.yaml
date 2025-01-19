@@ -400,30 +400,6 @@ paths:
       summary: Fetch on users' profile
       tags:
       - users
-  /users/{id}/follow:
-    put:
-      description: Follows user with given ID
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: User followed
-          schema:
-            type: string
-        "404":
-          description: User not found
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Follows user
-      tags:
-      - users
   /users/{userID}/unfollow:
     put:
       consumes:
@@ -451,6 +427,30 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Unfollow a user
+      tags:
+      - users
+  /users/{userId}/follow:
+    put:
+      description: Follows user with given ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User followed
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Follows user
       tags:
       - users
   /users/activate/{token}:

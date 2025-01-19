@@ -502,44 +502,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{id}/follow": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Follows user with given ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Follows user",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "User followed",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {}
-                    }
-                }
-            }
-        },
         "/users/{userID}/unfollow": {
             "put": {
                 "security": [
@@ -577,6 +539,44 @@ const docTemplate = `{
                     "400": {
                         "description": "User payload missing",
                         "schema": {}
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/users/{userId}/follow": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Follows user with given ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Follows user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "User followed",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     "404": {
                         "description": "User not found",
