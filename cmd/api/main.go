@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/jancewicz/social/internal/auth"
 	"github.com/jancewicz/social/internal/db"
 	"github.com/jancewicz/social/internal/env"
 	"github.com/jancewicz/social/internal/mailer"
@@ -57,9 +58,14 @@ func main() {
 			},
 		},
 		auth: authConfig{
-			basicConfig{
+			basic: basicConfig{
 				user:     os.Getenv("AUTH_BASIC_USER"),
 				password: os.Getenv("AUTH_BASIC_PASS"),
+			},
+			token: tokenConfig{
+				secret: os.Getenv("AUTH_TOKEN_SECRET"),
+				exp:    time.Hour * 24 * 3, // Three days
+				issuer: os.Getenv("TOKEN_ISSUER"),
 			},
 		},
 	}
@@ -90,11 +96,19 @@ func main() {
 		logger.Fatal(err)
 	}
 
+	// Authenticator
+	jwtAuthenticator := auth.NewJWTAuthenticator(
+		cfg.auth.token.secret,
+		cfg.auth.token.issuer,
+		cfg.auth.token.issuer,
+	)
+
 	app := &application{
-		config: cfg,
-		store:  store,
-		logger: logger,
-		mailer: mailtrap,
+		config:        cfg,
+		store:         store,
+		logger:        logger,
+		mailer:        mailtrap,
+		authenticator: jwtAuthenticator,
 	}
 
 	mux := app.mount()

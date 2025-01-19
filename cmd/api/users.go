@@ -118,8 +118,8 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 
 // ActivateUser godoc
 //
-//	@Summary		Activate users' account
-//	@Description	Activate users' account by invitation
+//	@Summary		Activate users account
+//	@Description	Activate users account by invitation
 //	@Tags			users
 //	@Produce		json
 //	@Param			token	path		string	true	"Invitation token"
@@ -142,7 +142,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := app.jsonResponse(w, http.StatusNoContent, ""); err != nil {
+	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
 		app.internalSeverError(w, r, err)
 	}
 }
