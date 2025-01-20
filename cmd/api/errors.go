@@ -22,6 +22,12 @@ func (app *application) notFoundError(w http.ResponseWriter, r *http.Request, er
 	writeJSONError(w, http.StatusNotFound, "not found")
 }
 
+func (app *application) forbiddenError(w http.ResponseWriter, r *http.Request) {
+	app.logger.Warnw("forbidden", "method", r.Method, "path", r.URL.Path, "error")
+
+	writeJSONError(w, http.StatusForbidden, "forbidden")
+}
+
 func (app *application) conflictError(w http.ResponseWriter, r *http.Request, err error) {
 	app.logger.Errorf("conflict error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 
