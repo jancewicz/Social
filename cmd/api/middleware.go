@@ -111,6 +111,7 @@ func (app *application) checkPostOwner(requiredRole string, next http.HandlerFun
 
 		if !allowed {
 			app.forbiddenError(w, r)
+			return
 		}
 
 		next.ServeHTTP(w, r)
