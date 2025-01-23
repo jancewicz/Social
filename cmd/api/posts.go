@@ -48,7 +48,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// currently authenticated user
-	user := getCommentFromCtx(r)
+	user := getUserFromCtx(r)
 
 	post := &store.Post{
 		Title:   payload.Title,
