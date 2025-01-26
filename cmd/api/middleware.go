@@ -81,7 +81,7 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 
 		ctx := r.Context()
 
-		user, err := app.store.Users.GetUserByID(ctx, userID)
+		user, err := app.getUser(ctx, userID)
 		if err != nil {
 			app.unauthorizedError(w, r, err)
 			return
@@ -125,4 +125,30 @@ func (app *application) checkUsersRole(ctx context.Context, user *store.User, ro
 	}
 
 	return user.Role.Level >= role.Level, nil
+}
+
+func (app *application) getUser(ctx context.Context, userID int64) (*store.User, error) {
+	app.logger.Infow("cache hit", "key", "user", "id", userID)
+
+	// Try to get user from cache
+	user, err := app.cacheStore.Users.Get(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// user not in cache
+	if user == nil {
+		app.logger.Infow("fetching user from DB", "id", userID)
+		user, err = app.store.Users.GetUserByID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		// Set user in cache
+		if err := app.cacheStore.Users.Set(ctx, user); err != nil {
+			return nil, err
+		}
+	}
+
+	return user, nil
 }
