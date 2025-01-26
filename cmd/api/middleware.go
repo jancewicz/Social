@@ -128,6 +128,10 @@ func (app *application) checkUsersRole(ctx context.Context, user *store.User, ro
 }
 
 func (app *application) getUser(ctx context.Context, userID int64) (*store.User, error) {
+	if !app.config.redisCfg.enable {
+		return app.store.Users.GetUserByID(ctx, userID)
+	}
+
 	app.logger.Infow("cache hit", "key", "user", "id", userID)
 
 	// Try to get user from cache
