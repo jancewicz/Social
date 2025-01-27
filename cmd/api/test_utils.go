@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/jancewicz/social/internal/auth"
 	"github.com/jancewicz/social/internal/store"
 	"github.com/jancewicz/social/internal/store/cache"
 	"go.uber.org/zap"
@@ -16,11 +17,13 @@ func newTestApp(t *testing.T) *application {
 	logger := zap.NewNop().Sugar()
 	mockStore := store.NewMockStore()
 	mockCacheStore := cache.NewMockStore()
+	mockAuth := &auth.TestAuthenticator{}
 
 	return &application{
-		logger:     logger,
-		store:      mockStore,
-		cacheStore: mockCacheStore,
+		logger:        logger,
+		store:         mockStore,
+		cacheStore:    mockCacheStore,
+		authenticator: mockAuth,
 	}
 }
 
@@ -30,4 +33,10 @@ func executeRequest(req *http.Request, mux http.Handler) *httptest.ResponseRecor
 	mux.ServeHTTP(rr, req)
 
 	return rr
+}
+
+func checkResponseStatusCode(t *testing.T, want, got int) {
+	if want != got {
+		t.Errorf("expected status code to be %d, got %d", want, got)
+	}
 }
