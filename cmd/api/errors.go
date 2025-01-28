@@ -47,3 +47,11 @@ func (app *application) unauthorizedBasicError(w http.ResponseWriter, r *http.Re
 
 	writeJSONError(w, http.StatusUnauthorized, "unauthorized")
 }
+
+func (app *application) rateLimitExceededError(w http.ResponseWriter, r *http.Request, retry string) {
+	app.logger.Errorf("rate limit exceeded error", "method", r.Method, "path", r.URL.Path)
+
+	w.Header().Set("Retry-After", retry)
+
+	writeJSONError(w, http.StatusTooManyRequests, "rate limit exceeded, retry after: "+retry)
+}

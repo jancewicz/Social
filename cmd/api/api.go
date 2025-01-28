@@ -16,6 +16,7 @@ import (
 	"github.com/jancewicz/social/docs"
 	"github.com/jancewicz/social/internal/auth"
 	"github.com/jancewicz/social/internal/mailer"
+	"github.com/jancewicz/social/internal/ratelimiter"
 	"github.com/jancewicz/social/internal/store"
 	"github.com/jancewicz/social/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -29,6 +30,7 @@ type application struct {
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	rateLimiter   ratelimiter.Limiter
 }
 
 type config struct {
@@ -40,6 +42,7 @@ type config struct {
 	frontendURL string
 	auth        authConfig
 	redisCfg    redisConfig
+	ratelimiter ratelimiter.Config
 }
 
 type redisConfig struct {
@@ -98,6 +101,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(app.RateLimiterMiddleware)
 
 	r.Use(middleware.Timeout(60 * time.Second))
 

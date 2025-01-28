@@ -10,6 +10,7 @@ import (
 	"github.com/jancewicz/social/internal/db"
 	"github.com/jancewicz/social/internal/env"
 	"github.com/jancewicz/social/internal/mailer"
+	"github.com/jancewicz/social/internal/ratelimiter"
 	"github.com/jancewicz/social/internal/store"
 	"github.com/jancewicz/social/internal/store/cache"
 	"github.com/joho/godotenv"
@@ -76,6 +77,11 @@ func main() {
 				issuer: os.Getenv("TOKEN_ISSUER"),
 			},
 		},
+		ratelimiter: ratelimiter.Config{
+			RequestsPerTimeFrame: env.GetInt("RATE_LIMITER_REQUESTS_COUNT", 20),
+			TimeFrame:            time.Second * 5,
+			Enabled:              env.GetBool("RATE_LIMITER_ENABLED", true),
+		},
 	}
 	log.Println("DB Address:", cfg.db.addr)
 
@@ -100,7 +106,14 @@ func main() {
 	if cfg.redisCfg.enable {
 		redisDB = cache.NewRedisClient(cfg.redisCfg.addr, cfg.redisCfg.password, cfg.redisCfg.db)
 		logger.Info("redis connection established")
+
+		defer redisDB.Close()
 	}
+
+	rateLimiter := ratelimiter.NewFixedWindowLimiter(
+		cfg.ratelimiter.RequestsPerTimeFrame,
+		cfg.ratelimiter.TimeFrame,
+	)
 
 	store := store.NewStorage(db)
 	cacheStore := cache.NewRedisStorage(redisDB)
@@ -125,6 +138,7 @@ func main() {
 		logger:        logger,
 		mailer:        mailtrap,
 		authenticator: jwtAuthenticator,
+		rateLimiter:   rateLimiter,
 	}
 
 	mux := app.mount()
