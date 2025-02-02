@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/jancewicz/social/compare/v1.0.0...v1.1.0) (2025-02-02)
+
+
+### Features
+
+* added update api version workflow ([9cfc9c4](https://github.com/jancewicz/social/commit/9cfc9c4fc4d10fa19813e43d3b5a6b07ecf54980))
+
 ## 1.0.0 (2025-02-02)
 
 
