@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/jancewicz/social/compare/v1.1.0...v1.2.0) (2025-02-02)
+
+
+### Features
+
+* changed const to var for workflow test ([393633c](https://github.com/jancewicz/social/commit/393633cbf6d07e51dd688a1d929c759532126345))
+
 ## [1.1.0](https://github.com/jancewicz/social/compare/v1.0.0...v1.1.0) (2025-02-02)
 
 
